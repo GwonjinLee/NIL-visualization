@@ -1,0 +1,148 @@
+---
+title: "Plotting example for ecotypes and NILs"
+author: "Gwonjin Lee"
+date: "3/12/2024"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+### This is an example script for plotting SW and IT with NILs (Fig. 1 in Lee et al., 2024)
+
+# Load libraries and data
+```{r}
+library(ggplot2)
+library(ggpattern)
+library(gridExtra)
+library(grid)
+library(Rmisc)
+library(ggpubr)
+library(dplyr)
+
+
+getwd()
+# Set a working folder
+
+# Load data 
+Fig1 <- read.csv("Fig1_062723.csv")
+
+
+```
+
+
+
+# Plotting example (Fig 1. Field fitness across all years)
+```{r}
+## Make a folder for plots
+if (!dir.exists("plot")) {dir.create("plot")}
+
+
+## SW field 
+SW_field_LSM <- subset(Fig1, Field == "SW" )
+SW_field_LSM$Genotype <- factor(SW_field_LSM$Level, levels = c("IT", "C_19", "R_38", "SW"))
+
+
+### Fitness
+
+SW_Field_Fit <- ggplot(SW_field_LSM,  aes(x= Genotype, y=LSM)) + 
+    theme_classic() +
+    geom_col_pattern(
+    aes(fill = Genotype, pattern_fill = Genotype, pattern_colour = Genotype),
+    pattern = 'stripe', color = "grey20", pattern_angle = 45, pattern_density = 0.01
+    ) +
+    scale_pattern_fill_manual(values = c(IT = "red3", SW = "blue4", C_19 = "blue4", R_38 = "red3")) +
+    scale_pattern_colour_manual(values = c(IT = "red3", SW = "blue4", C_19 = "blue4", R_38 = "red3")) +
+    labs(y='Fitness', title="Swedish site", x="") +
+      theme(axis.text.y=element_text(size=11, color="black"),
+          axis.text.x=element_text(size = 11, color="black", angle = 45, hjust = 1), 
+          axis.title=element_text(size = 11),
+          axis.line = element_line(colour = 'black', linewidth  = 0.6),
+          legend.position = 'none', plot.title=element_text( hjust = 0.5, size = 11)
+          ) +
+    scale_y_continuous(breaks = seq(0, 15, 5), limits = c(0,15)) +
+    scale_fill_manual(values=c("red3", "red3","blue4","blue4")) +
+    geom_errorbar(aes(ymin=LSM-SE, ymax=LSM+SE),
+                  size=.6, color = "grey10",
+                  width=.2,                    
+                  position=position_dodge(.9)) +
+    theme(panel.grid.major = element_blank()) +
+    guides(fill="none") +
+    geom_text(aes(x=Genotype, y=LSM+SE+1, 
+              label=c("","ns","**","")),
+              position=position_dodge(width=0.9), size=3) +theme(plot.margin=unit(c(0.2,0.2,-0.2,0.2),"cm"))
+
+SW_Field_Fit
+
+
+
+
+
+######################################
+## IT field
+
+IT_field_LSM <- subset(Fig1, Field == "IT" )
+IT_field_LSM$Genotype <- factor(IT_field_LSM$Level, levels = c("IT", "C_19", "R_38", "SW"))
+
+
+### Fitness
+
+IT_Field_Fit <- ggplot(IT_field_LSM,  aes(x= Genotype, y=LSM)) + 
+    theme_classic() +
+    geom_col_pattern(
+    aes(fill = Genotype, pattern_fill = Genotype, pattern_colour = Genotype),
+    pattern = 'stripe', color = "grey20", pattern_angle = 45, pattern_density = 0.01
+    ) +
+    scale_pattern_fill_manual(values = c(IT = "red3", SW = "blue4", C_19 = "blue4", R_38 = "red3")) +
+    scale_pattern_colour_manual(values = c(IT = "red3", SW = "blue4", C_19 = "blue4", R_38 = "red3")) +
+    labs(y='', title="Italian site", x="") +
+      theme(axis.text.y=element_text(size=11, color="black"),
+          axis.text.x=element_text(size = 11, color="black", angle = 45, hjust = 1), 
+          axis.title=element_text(size = 11),
+          axis.line = element_line(colour = 'black', linewidth  = 0.6),
+          legend.position = 'none', plot.title=element_text( hjust = 0.5, size = 11)
+          ) +
+    scale_y_continuous(breaks = seq(0, 15, 5), limits = c(0,15)) +
+    scale_fill_manual(values=c("red3", "red3","blue4","blue4")) +
+    geom_errorbar(aes(ymin=LSM-SE, ymax=LSM+SE),
+                  size=.6, color = "grey10",
+                  width=.2,                    
+                  position=position_dodge(.9)) +
+    theme(panel.grid.major = element_blank()) +
+    guides(fill="none") +
+    geom_text(aes(x=Genotype, y=LSM+SE+1, 
+              label=c("","***","ns","")),
+              position=position_dodge(width=0.9), size=3) +theme(plot.margin=unit(c(0.2,0.2,-0.2,0.2),"cm"))
+
+IT_Field_Fit
+
+
+
+
+#######################
+## Plotting
+
+dev.off()
+
+
+### Save as png
+png(filename = "plot/Fig.1.png", width = 9, height = 6, units = "cm",  res = 500 )
+
+grid.arrange(SW_Field_Fit, IT_Field_Fit,
+             ncol = 2  )
+grid.text("A", x = unit(0.01, "npc"), y = unit(0.95, "npc"), just = "left", gp = gpar(fontface = "bold", fontsize = 12))
+grid.text("B", x = unit(0.52, "npc"), y = unit(0.95, "npc"), just = "left", gp = gpar(fontface = "bold", fontsize = 12))
+dev.off()
+
+
+
+
+### Save as svg
+svg(filename = "plot/Fig.1.svg", width = 9 /2.54, height = 6 /2.54)
+grid.arrange(SW_Field_Fit, IT_Field_Fit, ncol = 2)
+grid.text("A", x = unit(0.01, "npc"), y = unit(0.95, "npc"), just = "left", gp = gpar(fontface = "bold", fontsize = 12))
+grid.text("B", x = unit(0.52, "npc"), y = unit(0.95, "npc"), just = "left", gp = gpar(fontface = "bold", fontsize = 12))
+dev.off()
+
+
+```
+
